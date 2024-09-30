@@ -23,6 +23,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 /// Thread entry point.
 [[noreturn]] void __cheri_compartment("rtcc_example") init()
 {
+    DS3231::Control control;
     DS3231::DateTime datetime;
     DS3231::Temperature temperature;
 
@@ -33,6 +34,11 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
     i2c0->reset_fifos();
     i2c0->host_mode_set();
     i2c0->speed_set(100);  // Set I2C speed to 100 kHz.
+
+    // Start the oscillator
+    DS3231::read_control(i2c0, &control);
+    control.eosc = 0;
+    DS3231::write_control(i2c0, &control);
 
     // Infinite loop: Read and display time every second.
     while (true)
