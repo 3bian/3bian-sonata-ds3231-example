@@ -22,8 +22,8 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 /// Thread entry point.
 [[noreturn]] void __cheri_compartment("rtcc_example") init()
 {
-    DS3231::Control control;
-    DS3231::DateTime datetime;
+    DS3231::Control     control;
+    DS3231::DateTime    datetime;
     DS3231::Temperature temperature;
 
     // Obtain the memory-mapped I2C0 interface.
@@ -45,28 +45,43 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
         // Display the current time.
         if (DS3231::read_datetime(i2c0, datetime))
         {
+            Debug::log("hours (1s)      : {}", datetime.hour_units);
+
             if (datetime.is_24_hour)
             {
-                Debug::log("Hours:        tens: {}    units: {}    24h",
-                           datetime.hour_24.hour_tens, datetime.hour_units);
+                Debug::log("hours (10s)     : {} 2-bit", datetime.hour_24.hour_tens);
             }
             else
             {
-                Debug::log("Hours:        tens: {}    units: {}    am/pm: {}",
-                           datetime.hour_12.hour_tens, datetime.hour_units,
-                           datetime.hour_12.meridian);
+                Debug::log("hours (10s)     : {} 1-bit", datetime.hour_12.hour_tens);
             }
-            Debug::log("Minutes:      tens: {}    units: {}",
-                       datetime.minute_tens, datetime.minute_units);
-            Debug::log("Seconds:      tens: {}    units: {}",
-                       datetime.second_tens, datetime.second_units);
+
+            Debug::log("minutes (1s)    : {}", datetime.minute_units);
+            Debug::log("minutes (10s)   : {}", datetime.minute_tens);
+            Debug::log("seconds (1s)    : {}", datetime.second_units);
+            Debug::log("seconds (10s)   : {}", datetime.second_tens);
+
+            if (!datetime.is_24_hour)
+            {
+                Debug::log("meridian        : {} 1-bit", datetime.hour_12.meridian);
+            }
+
+            Debug::log("is 24hr         : {}", datetime.is_24_hour);
+        }
+        else
+        {
+            Debug::log("Unable to read datetime");
         }
 
         // Display the current temperature.
         if (DS3231::read_temperature(i2c0, temperature))
         {
-            Debug::log("Temperature:  degrees: {}  quarters: {}",
-                       temperature.degrees, temperature.quarters);
+            Debug::log("temp degrees    : {}", temperature.degrees);
+            Debug::log("temp quarters   : {}", temperature.quarters);
+        }
+        else
+        {
+            Debug::log("Unable to read temperature");
         }
 
         // Wait for 1 second before the next read.
