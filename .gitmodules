@@ -1,3 +1,6 @@
 [submodule "third_party/cheriot_rtos"]
 	path = third_party/cheriot_rtos
 	url = https://github.com/3bian/cheriot-rtos.git
+[submodule "lib/3bian_sonata_ds3231"]
+	path = lib/3bian_sonata_ds3231
+	url = https://github.com/3bian/3bian-sonata-ds3231
