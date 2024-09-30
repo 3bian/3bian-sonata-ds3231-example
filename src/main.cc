@@ -11,7 +11,6 @@
  */
 
 #include <compartment.h>
-#include <ctype.h>
 #include <debug.hh>
 #include <ds3231.hh>
 #include <platform-i2c.hh>
