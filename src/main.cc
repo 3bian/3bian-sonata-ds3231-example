@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * @file rtcc_example.cc
- * @brief Example program to communicate with the DS3231 RTCC module via I2C.
- *
  * This example demonstrates how to initialize the I2C interface, communicate
  * with the DS3231 RTC, read the current time, and display it using debug logs.
  *
@@ -16,91 +13,45 @@
 #include <compartment.h>
 #include <ctype.h>
 #include <debug.hh>
+#include <ds3231.hh>
 #include <platform-i2c.hh>
 #include <thread.h>
 
-// Debugging Setup
+/// Expose debugging features unconditionally for this compartment.
 using Debug = ConditionalDebug<true, "RTCC Example">;
 
-// Command Constants
-constexpr uint8_t RTCC_I2C_CLEAR_EOSC_BIT[2]   = { 0x0E, 0b00011100 };
-constexpr uint8_t RTCC_I2C_REQUEST_DATETIME[1] = { 0x00 };
-constexpr uint8_t RTCC_I2C_ADDRESS             = 0x68;
-
-// Memory-Mapped I/O Template
-template <class T>
-using Mmio = volatile T*;
-
-/**
- * @brief Converts a BCD-encoded byte to its binary equivalent.
- *
- * @param x BCD-encoded byte.
- * @return Binary equivalent of the BCD byte.
- */
-uint8_t bcd2bin(uint8_t x)
-{
-    return (((x >> 4) & 0x0F) * 10) + (x & 0x0F);
-}
-
-/**
- * @brief Initializes the I2C interface and reads time from the DS3231 RTC.
- *
- * This function sets up the I2C peripheral, clears the EOSC bit to ensure the
- * oscillator is enabled, and enters an infinite loop to read and display the
- * current time every second.
- */
+/// Thread entry point.
 [[noreturn]] void __cheri_compartment("rtcc_example") init()
 {
-    // I2C Configuration
-    auto i2cSetup = [](Mmio<OpenTitanI2c> i2c) {
-        i2c->reset_fifos();      // Reset I2C FIFOs
-        i2c->host_mode_set();    // Set I2C to host mode
-        i2c->speed_set(100);     // Set I2C speed to 100 kHz
-    };
+    DS3231::DateTime datetime;
+    DS3231::Temperature temperature;
 
-    // Obtain the memory-mapped I2C0 interface
+    // Obtain the memory-mapped I2C0 interface.
     auto i2c0 = MMIO_CAPABILITY(OpenTitanI2c, i2c0);
 
-    // Initialize the I2C0 interface
-    i2cSetup(i2c0);
+    // Configure the I2C interface.
+    i2c0->reset_fifos();
+    i2c0->host_mode_set();
+    i2c0->speed_set(100);  // Set I2C speed to 100 kHz.
 
-    // Buffer to store read data
-    uint8_t receive_buffer[7]; 
-
-    // Clear the EOSC bit to enable the oscillator
-    Debug::log("Clearing EOSC bit...");
-    i2c0->blocking_write(RTCC_I2C_ADDRESS, RTCC_I2C_CLEAR_EOSC_BIT,
-                         sizeof(RTCC_I2C_CLEAR_EOSC_BIT), true);
-
-    // Infinite Loop: Read and Display Time Every Second
+    // Infinite loop: Read and display time every second.
     while (true)
     {
-        // Request time data from RTCC
-        Debug::log("Requesting time data from RTCC...");
-        i2c0->blocking_write(RTCC_I2C_ADDRESS, RTCC_I2C_REQUEST_DATETIME,
-                             sizeof(RTCC_I2C_REQUEST_DATETIME), true);
+        // Display the current time.
+        if (DS3231::read_datetime(i2c0, &datetime))
+        {
+            Debug::log("Hours:   tens:{} units:{}", datetime.hour_tens, datetime.hour_units);
+            Debug::log("Minutes: tens:{} units:{}", datetime.minute_tens, datetime.minute_units);
+            Debug::log("Seconds: tens:{} units:{}", datetime.second_tens, datetime.second_units);
+        }
 
-        // Read 7 bytes of time data from RTCC
-        Debug::log("Reading time data from RTCC at address 0x68...");
-        size_t bytes_read = i2c0->blocking_read(RTCC_I2C_ADDRESS, receive_buffer,
-                                                sizeof(receive_buffer));
+        // Display the current temperature.
+        if (DS3231::read_temperature(i2c0, &temperature))
+        {
+            Debug::log("Temperature: degrees:{} quarters: {}", temperature.degrees, temperature.quarters);
+        }
 
-        Debug::log("{} bytes received.", bytes_read);
-
-        // Convert BCD Data to Binary
-        Debug::log("Converting BCD values to binary...");
-        uint8_t seconds = bcd2bin(receive_buffer[0]);
-        uint8_t minutes = bcd2bin(receive_buffer[1]);
-        uint8_t hours   = bcd2bin(receive_buffer[2]);
-        uint8_t weekday = bcd2bin(receive_buffer[3]);
-        uint8_t day     = bcd2bin(receive_buffer[4]);
-        uint8_t month   = bcd2bin(receive_buffer[5]);
-        uint8_t year    = bcd2bin(receive_buffer[6]);
-
-        // Display the current time
-        Debug::log("Current Time: {}:{}:{}", hours, minutes, seconds);
-
-        // Wait for 1 second before the next read
+        // Wait for 1 second before the next read.
         thread_millisecond_wait(1000);
     }
 }
