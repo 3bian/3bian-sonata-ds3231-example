@@ -36,7 +36,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 
     // Start the oscillator.
     DS3231::read_control(i2c0, control);
-    control.eosc = 0;
+    control.disableOscillator = 0;
     DS3231::write_control(i2c0, control);
 
     // Infinite loop: Read and display time every second.
@@ -45,28 +45,28 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
         // Display the current time.
         if (DS3231::read_datetime(i2c0, datetime))
         {
-            Debug::log("hours (1s)      : {}", datetime.hour_units);
+            Debug::log("hours (1s)      : {}", datetime.hourUnits);
 
-            if (datetime.is_24_hour)
+            if (datetime.is24Hour)
             {
-                Debug::log("hours (10s)     : {} 2-bit", datetime.hour_24.hour_tens);
+                Debug::log("hours (10s)     : {} 2-bit", datetime.hour24.hourTens);
             }
             else
             {
-                Debug::log("hours (10s)     : {} 1-bit", datetime.hour_12.hour_tens);
+                Debug::log("hours (10s)     : {} 1-bit", datetime.hour12.hourTens);
             }
 
-            Debug::log("minutes (1s)    : {}", datetime.minute_units);
-            Debug::log("minutes (10s)   : {}", datetime.minute_tens);
-            Debug::log("seconds (1s)    : {}", datetime.second_units);
-            Debug::log("seconds (10s)   : {}", datetime.second_tens);
+            Debug::log("minutes (1s)    : {}", datetime.minuteUnits);
+            Debug::log("minutes (10s)   : {}", datetime.minuteTens);
+            Debug::log("seconds (1s)    : {}", datetime.secondUnits);
+            Debug::log("seconds (10s)   : {}", datetime.secondTens);
 
-            if (!datetime.is_24_hour)
+            if (!datetime.is24Hour)
             {
-                Debug::log("meridian        : {} 1-bit", datetime.hour_12.meridian);
+                Debug::log("meridian        : {} 1-bit", datetime.hour12.meridian);
             }
 
-            Debug::log("is 24hr         : {}", datetime.is_24_hour);
+            Debug::log("is 24hr         : {}", datetime.is24Hour);
         }
         else
         {
