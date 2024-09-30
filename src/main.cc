@@ -45,18 +45,27 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
         // Display the current time.
         if (DS3231::read_datetime(i2c0, datetime))
         {
-            Debug::log("Hours:        tens:{} units:{}",
-                       datetime.hour_tens, datetime.hour_units);
-            Debug::log("Minutes:      tens:{} units:{}",
+            if (datetime.is_24_hour)
+            {
+                Debug::log("Hours:        tens: {}    units: {}    24h",
+                           datetime.hour_24.hour_tens, datetime.hour_units);
+            }
+            else
+            {
+                Debug::log("Hours:        tens: {}    units: {}    am/pm: {}",
+                           datetime.hour_12.hour_tens, datetime.hour_units,
+                           datetime.hour_12.meridian);
+            }
+            Debug::log("Minutes:      tens: {}    units: {}",
                        datetime.minute_tens, datetime.minute_units);
-            Debug::log("Seconds:      tens:{} units:{}",
+            Debug::log("Seconds:      tens: {}    units: {}",
                        datetime.second_tens, datetime.second_units);
         }
 
         // Display the current temperature.
         if (DS3231::read_temperature(i2c0, temperature))
         {
-            Debug::log("Temperature:  degrees:{} quarters: {}",
+            Debug::log("Temperature:  degrees: {}  quarters: {}",
                        temperature.degrees, temperature.quarters);
         }
 
