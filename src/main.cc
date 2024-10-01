@@ -22,8 +22,8 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 /// Thread entry point.
 [[noreturn]] void __cheri_compartment("rtcc_example") init()
 {
-    DS3231::Control     control;
-    DS3231::DateTime    datetime;
+    DS3231::Control control;
+    DS3231::DateTime datetime;
     DS3231::Temperature temperature;
 
     // Obtain the memory-mapped I2C0 interface.
@@ -36,7 +36,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 
     // Start the oscillator.
     DS3231::read_control(i2c0, control);
-    control.disableOscillator = 0;
+    control.set_disable_oscillator(false);
     DS3231::write_control(i2c0, control);
 
     // Infinite loop: Read and display time every second.
@@ -45,28 +45,9 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
         // Display the current time.
         if (DS3231::read_datetime(i2c0, datetime))
         {
-            Debug::log("hours (1s)      : {}", datetime.hourUnits);
-
-            if (datetime.is24Hour)
-            {
-                Debug::log("hours (10s)     : {} 2-bit", datetime.hour24.hourTens);
-            }
-            else
-            {
-                Debug::log("hours (10s)     : {} 1-bit", datetime.hour12.hourTens);
-            }
-
-            Debug::log("minutes (1s)    : {}", datetime.minuteUnits);
-            Debug::log("minutes (10s)   : {}", datetime.minuteTens);
-            Debug::log("seconds (1s)    : {}", datetime.secondUnits);
-            Debug::log("seconds (10s)   : {}", datetime.secondTens);
-
-            if (!datetime.is24Hour)
-            {
-                Debug::log("meridian        : {} 1-bit", datetime.hour12.meridian);
-            }
-
-            Debug::log("is 24hr         : {}", datetime.is24Hour);
+            Debug::log("hours           : {}", datetime.get_hours());
+            Debug::log("minutes         : {}", datetime.get_minutes());
+            Debug::log("seconds         : {}", datetime.get_seconds());
         }
         else
         {
@@ -76,8 +57,8 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
         // Display the current temperature.
         if (DS3231::read_temperature(i2c0, temperature))
         {
-            Debug::log("temp degrees    : {}", temperature.degrees);
-            Debug::log("temp quarters   : {}", temperature.quarters);
+            Debug::log("temp degrees    : {}", temperature.get_degrees());
+            Debug::log("temp quarters   : {}", temperature.get_quarters());
         }
         else
         {
