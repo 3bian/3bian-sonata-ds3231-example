@@ -1,4 +1,4 @@
-// Copyright 3bian Limited, lowRISC, and CHERIoT Contributors.
+// Copyright 3bian Limited, lowRISC and CHERIoT Contributors.
 // SPDX-License-Identifier: Apache-2.0
 
 /**
