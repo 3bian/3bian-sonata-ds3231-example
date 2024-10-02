@@ -39,6 +39,19 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
     control.set_disable_oscillator(false);
     DS3231::write_control(i2c0, control);
 
+	// Set date and time
+	//datetime.set_weekday(DS3231::Weekday::Wednesday);
+	//datetime.set_day(2);
+	//datetime.set_month(10);
+	//datetime.set_century(true);
+	//datetime.set_year(24);
+	//datetime.set_international_time(false);
+	//datetime.set_hours(9);
+	//datetime.set_minutes(30);
+	//datetime.set_seconds(0);
+	//datetime.set_meridian(DS3231::Meridian::AM);
+	//DS3231::write_datetime(i2c0, datetime);
+
     // Infinite loop: Read and display time every second.
     while (true)
     {
