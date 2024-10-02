@@ -48,6 +48,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
             Debug::log("hours           : {}", datetime.get_hours());
             Debug::log("minutes         : {}", datetime.get_minutes());
             Debug::log("seconds         : {}", datetime.get_seconds());
+			Debug::log("meridian        : {}", datetime.get_meridian());
         }
         else
         {
