@@ -33,12 +33,12 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 	i2c0->speed_set(100);  // Set I2C speed to 100 kHz.
 
 	// Start the oscillator.
-	DS3231::Control<OpenTitanI2c> control(i2c0);
+	DS3231::Control control(i2c0);
 	control.retrieve();
 	control.set_disable_oscillator(false);
 	control.store();
 
-	DS3231::DateTime<OpenTitanI2c> datetime(i2c0);
+	DS3231::DateTime datetime(i2c0);
 
 	// Set date and time
 	//datetime.set_weekday(DS3231::Weekday::Wednesday);
@@ -53,7 +53,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 	//datetime.set_meridian(DS3231::Meridian::AM);
 	//datetime.store();
 
-	DS3231::Temperature<OpenTitanI2c> temperature(i2c0);
+	DS3231::Temperature temperature(i2c0);
 
  	// Infinite loop: Read and display time every second.
 	while (true)
