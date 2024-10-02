@@ -15,8 +15,7 @@ option("board")
 compartment("rtcc_example")
     add_deps("debug",
              "freestanding")
-    add_files("lib/3bian_sonata_ds3231/src/*.cc",
-              "src/*.cc")
+    add_files("src/*.cc")
     add_includedirs("lib/3bian_sonata_ds3231/include")
 
 firmware("rtcc-example")
