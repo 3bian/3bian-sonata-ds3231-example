@@ -12,7 +12,9 @@
 
 #include <compartment.h>
 #include <debug.hh>
-#include <ds3231.hh>
+#include <ds3231-control.hh>
+#include <ds3231-datetime.hh>
+#include <ds3231-temperature.hh>
 #include <platform-i2c.hh>
 #include <thread.h>
 
@@ -22,22 +24,21 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 /// Thread entry point.
 [[noreturn]] void __cheri_compartment("rtcc_example") init()
 {
-    DS3231::Control control;
-    DS3231::DateTime datetime;
-    DS3231::Temperature temperature;
+	// Obtain the memory-mapped I2C0 interface.
+	auto i2c0 = MMIO_CAPABILITY(OpenTitanI2c, i2c0);
 
-    // Obtain the memory-mapped I2C0 interface.
-    auto i2c0 = MMIO_CAPABILITY(OpenTitanI2c, i2c0);
+	// Configure the I2C interface.
+	i2c0->reset_fifos();
+	i2c0->host_mode_set();
+	i2c0->speed_set(100);  // Set I2C speed to 100 kHz.
 
-    // Configure the I2C interface.
-    i2c0->reset_fifos();
-    i2c0->host_mode_set();
-    i2c0->speed_set(100);  // Set I2C speed to 100 kHz.
+	// Start the oscillator.
+	DS3231::Control<OpenTitanI2c> control(i2c0);
+	control.retrieve();
+	control.set_disable_oscillator(false);
+	control.store();
 
-    // Start the oscillator.
-    DS3231::read_control(i2c0, control);
-    control.set_disable_oscillator(false);
-    DS3231::write_control(i2c0, control);
+	DS3231::DateTime<OpenTitanI2c> datetime(i2c0);
 
 	// Set date and time
 	//datetime.set_weekday(DS3231::Weekday::Wednesday);
@@ -50,40 +51,41 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 	//datetime.set_minutes(30);
 	//datetime.set_seconds(0);
 	//datetime.set_meridian(DS3231::Meridian::AM);
-	//DS3231::write_datetime(i2c0, datetime);
+	//datetime.store();
 
-    // Infinite loop: Read and display time every second.
-    while (true)
-    {
-        // Display the current time.
-        if (DS3231::read_datetime(i2c0, datetime))
-        {
-            Debug::log("hours           : {}", datetime.get_hours());
-            Debug::log("minutes         : {}", datetime.get_minutes());
-            Debug::log("seconds         : {}", datetime.get_seconds());
-			Debug::log("meridian        : {}", datetime.get_meridian());
-			Debug::log("weekday         : {}", datetime.get_weekday());
-			Debug::log("day             : {}", datetime.get_day());
-			Debug::log("month           : {}", datetime.get_month());
-			Debug::log("year            : {}", datetime.get_year());
-        }
-        else
-        {
-            Debug::log("Unable to read datetime");
-        }
+	DS3231::Temperature<OpenTitanI2c> temperature(i2c0);
 
-        // Display the current temperature.
-        if (DS3231::read_temperature(i2c0, temperature))
-        {
-            Debug::log("temp degrees    : {}", temperature.get_degrees());
-            Debug::log("temp quarters   : {}", temperature.get_quarters());
-        }
-        else
-        {
-            Debug::log("Unable to read temperature");
-        }
+ 	// Infinite loop: Read and display time every second.
+	while (true)
+	{
+		// Display the current time.
+		if (datetime.retrieve())
+		{
+			Debug::log("hours           : {}", datetime.hours());
+			Debug::log("minutes         : {}", datetime.minutes());
+			Debug::log("seconds         : {}", datetime.seconds());
+			Debug::log("meridian        : {}", datetime.meridian());
+			Debug::log("weekday         : {}", datetime.weekday());
+			Debug::log("day             : {}", datetime.day());
+			Debug::log("month           : {}", datetime.month());
+			Debug::log("year            : {}", datetime.year());
+		}
+		else
+		{
+			Debug::log("Unable to read datetime");
+		}
 
-        // Wait for 1 second before the next read.
-        thread_millisecond_wait(1000);
-    }
+		// Display the current temperature.
+		if (temperature.retrieve())
+		{
+			Debug::log("temp degrees    : {}", temperature.degrees());
+			Debug::log("temp quarters   : {}", temperature.quarters());
+		}
+		else
+		{
+			Debug::log("Unable to read temperature");
+		}
+
+		thread_millisecond_wait(1000);
+	}
 }
