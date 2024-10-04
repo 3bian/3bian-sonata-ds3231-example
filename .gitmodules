@@ -4,3 +4,6 @@
 [submodule "lib/3bian_sonata_ds3231"]
 	path = lib/3bian_sonata_ds3231
 	url = https://github.com/3bian/3bian-sonata-ds3231
+[submodule "lib/3bian_sonata_i2c"]
+	path = lib/3bian_sonata_i2c
+	url = https://github.com/3bian/3bian-sonata-i2c
