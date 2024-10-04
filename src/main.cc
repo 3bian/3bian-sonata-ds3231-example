@@ -78,7 +78,7 @@ using Debug = ConditionalDebug<true, "RTCC Example">;
 		// Display the current temperature.
 		if (temperature.retrieve())
 		{
-			Debug::log("temp degrees    : {}", temperature.degrees());
+			Debug::log("temp degrees    : {}", temperature.whole());
 			Debug::log("temp quarters   : {}", temperature.quarters());
 		}
 		else
