@@ -16,7 +16,7 @@ compartment("rtcc_example")
     add_deps("debug",
              "freestanding")
     add_files("src/*.cc")
-    add_includedirs("lib/3bian_sonata_ds3231/include")
+    add_includedirs("lib/3bian_sonata_i2c/include")
 
 firmware("rtcc-example")
     add_deps("rtcc_example")
